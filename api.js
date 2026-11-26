@@ -24,10 +24,13 @@
     if (!mem) mem = { content: JSON.parse(JSON.stringify(A.defaults)), notify: emptyNotify(), leads: [], seq: 0, staffPass: { value: '810zayavki2026', mustChange: true }, ownerPass: { value: '810owner2026', mustChange: true } };
     if (!mem.staffPass || !mem.ownerPass || mem.pw) {
       const oldPw = mem.pw || (mem.staffPass && mem.staffPass.value);
-      const migrated = oldPw && oldPw !== 'admin810' ? oldPw : '810zayavki2026';
-      mem.staffPass = { value: migrated, mustChange: oldPw && oldPw !== 'admin810' ? false : true };
+      const isService = !oldPw || oldPw === 'admin810' || oldPw === '810demo2026';
+      mem.staffPass = { value: isService ? '810zayavki2026' : oldPw, mustChange: !isService };
       mem.ownerPass = mem.ownerPass || { value: '810owner2026', mustChange: true };
       delete mem.pw; persist();
+    }
+    if (mem.staffPass && (mem.staffPass.value === 'admin810' || mem.staffPass.value === '810demo2026')) {
+      mem.staffPass = { value: '810zayavki2026', mustChange: true }; persist();
     }
     return mem;
   }
