@@ -99,5 +99,10 @@
   A.resend = S((id, ch) => call('POST', '/api/admin/leads/' + id + '/resend', { channel: ch || null }), demo.resend);
   A.exportAll = S(() => call('GET', '/api/admin/export'), demo.exportAll);
   A.importAll = S(b => call('POST', '/api/admin/import', b), demo.importAll);
+  A.resetDemo = function () {
+    try { localStorage.removeItem(KEY); } catch (e) {}
+    try { sessionStorage.clear(); } catch (e) {}
+    location.reload();
+  };
   window.A810 = A;
 })();

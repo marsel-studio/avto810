@@ -59,6 +59,7 @@
     h('h1', null, 'Вход в админку'), h('label', { for: 'adm-pw' }, 'Пароль'), pw, err,
     h('button', { class: 'adm-btn primary', type: 'submit' }, 'Войти'),
     A.mode === 'demo' ? h('p', { class: 'adm-hint' }, 'Демо-режим: вход для персонала и владельца. Данные хранятся только в этом браузере, уведомления не отправляются.') : null,
+    A.mode === 'demo' ? h('button', { class: 'adm-link', type: 'button', onclick: () => { if (confirm('Сбросить демо-данные этого браузера и вернуть пароли по умолчанию?')) (A.resetDemo || (() => location.reload()))(); } }, 'Сбросить данные демо (вернуть пароли по умолчанию)') : null,
     h('a', { class: 'adm-hint', href: window.Site ? Site.homeHref() : '/' }, '← На сайт'));
     root.replaceChildren(h('div', { class: 'adm-center' }, form)); pw.focus();
   }
