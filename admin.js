@@ -71,13 +71,13 @@
         h('strong', null, 'Админка'), h('span', { class: 'adm-sub' }, S.content.brand.name), h('span', { class: 'sp' }),
         h('a', { class: 'adm-link', href: window.Site ? Site.homeHref() : '/' }, 'Сайт'),
         h('button', { class: 'adm-link', type: 'button', onclick: async () => { await A.logout(); loginView(); } }, 'Выйти'))),
-      h('div', { class: 'adm-wrap' }, tabsEl, body), bar);
+      h('div', { class: 'adm-wrap' }, S.role === 'owner' && S.mustChange ? h('div', { class: 'adm-banner warn' }, 'Сейчас стоит пароль по умолчанию. Смените его в Настройках → Пароли.') : null, tabsEl, body), bar);
     renderTabs(); renderBody();
   }
   function renderTabs() {
     const n = S.leads.filter(l => l.status === 'new').length;
     const defs = S.role === 'owner' ? [['leads', 'Заявки', n], ['services', 'Услуги'], ['reviews', 'Отзывы'], ['settings', 'Настройки']] : [['leads', 'Заявки', n]];
-    tabsEl.replaceChildren(...defs.map(([id, name, badge]) => h('button', { type: 'button', role: 'tab', 'aria-selected': String(tab === id), class: 'adm-tab' + (tab === id ? ' on' : ''), disabled: S.role === 'owner' && S.mustChange && id !== 'settings', onclick: () => { tab = id; renderTabs(); renderBody(); } }, name, badge ? h('i', null, badge) : null)));
+    tabsEl.replaceChildren(...defs.map(([id, name, badge]) => h('button', { type: 'button', role: 'tab', 'aria-selected': String(tab === id), class: 'adm-tab' + (tab === id ? ' on' : ''), onclick: () => { tab = id; renderTabs(); renderBody(); } }, name, badge ? h('i', null, badge) : null)));
   }
   function renderBody() {
     bar.replaceChildren(); bar.hidden = true;
@@ -264,7 +264,7 @@
       if (n1.value.length < 8) { msg.textContent = 'Новый пароль короче 8 символов'; return; }
       if (n1.value !== n2.value) { msg.textContent = 'Пароли не совпадают'; return; }
       if (n1.value === 'admin810') { msg.textContent = 'Придумайте другой пароль'; return; }
-      try { await A.changePassword(cur.value, n1.value, target.value); if (target.value === 'owner') S.mustChange = false; cur.value = n1.value = n2.value = ''; msg.className = 'adm-meta okc'; msg.textContent = 'Пароль изменён. Другие устройства выйдут из админки.'; renderTabs(); toast('Пароль изменён'); } catch (x) { msg.textContent = x.message; }
+      try { await A.changePassword(cur.value, n1.value, target.value); if (target.value === 'owner') S.mustChange = false; cur.value = n1.value = n2.value = ''; msg.className = 'adm-meta okc'; msg.textContent = 'Пароль изменён. Другие устройства выйдут из админки.'; render(); toast('Пароль изменён'); } catch (x) { msg.textContent = x.message; }
     } }, h('h3', null, 'Смена пароля'), h('div', { class: 'adm-f' }, h('label', { for: 'pw-role' }, 'Чей пароль изменить'), target),
     S.mustChange ? h('p', { class: 'adm-banner warn' }, 'Сейчас стоит пароль по умолчанию. Задайте свой, иначе остальные разделы закрыты.') : null,
     h('div', { class: 'adm-f' }, h('label', { for: 'pw0' }, 'Текущий пароль владельца'), cur), h('div', { class: 'adm-f' }, h('label', { for: 'pw1' }, 'Новый пароль, от 8 символов'), n1), h('div', { class: 'adm-f' }, h('label', { for: 'pw2' }, 'Повторите новый пароль'), n2),
