@@ -64,12 +64,17 @@
   <ul class="chips">${s.directions.map(d => `<li>${E(d)}</li>`).join('')}</ul>
 </section>
 
+<section id="wheel" class="sec wrap">
+  <div class="sec-head"><p class="eyebrow">Точность в деталях</p><h2>Надёжность начинается<br>с деталей.</h2><p>Колесо и тормозная система — рассмотрите устройство со всех сторон.</p></div>
+  <figure class="stage" id="stageDisc" aria-label="Интерактивная 3D-модель колеса и тормозной системы"><canvas aria-hidden="true"></canvas><div class="fallback">Колесо и тормозная система</div><div class="tag l" data-tag="disc"><span>Тормозной диск</span></div><div class="tag" data-tag="caliper"><span>Суппорт</span></div><figcaption>Потяните, чтобы повернуть колесо</figcaption></figure>
+</section>
+
 <section id="stand" class="sec wrap">
   <div class="stand">
     <div>
       <p class="eyebrow">${E(st.eyebrow)}</p>
-      <h2 style="font-size:clamp(1.55rem,3.3vw,2.6rem);line-height:1.1">Точная настройка.<br>Правильная траектория.</h2>
-      <p class="lead" style="margin-top:20px;font-size:1rem">Регулируем развал и схождение на профессиональном 3D-стенде по данным производителя. Автомобиль держит дорогу, шины изнашиваются равномерно.</p><details class="stand-details"><summary>Как работает сход-развал</summary><p>${E(st.text)}</p></details>
+      <h2 class="stand-title">${E(st.title)}</h2>
+      <p class="lead stand-intro">${E(st.text)}</p>
       <div class="ctl">
         <label for="camber"><span class="val"><span>Развал</span><output id="camberOut">0.0°</output></span><input id="camber" type="range" min="-4" max="4" step="0.1" value="0"></label>
         <label for="toe"><span class="val"><span>Схождение</span><output id="toeOut">0.00°</output></span><input id="toe" type="range" min="-2" max="2" step="0.05" value="0"></label>
@@ -83,7 +88,7 @@
       <p class="note">${E(st.note)}</p>
     </div>
     <figure class="stage" id="stageAlign" aria-label="Интерактивная 3D-модель передней оси">
-      <canvas></canvas><div class="fallback" aria-hidden="true">3D</div>
+      <canvas aria-hidden="true"></canvas><div class="fallback"><strong>Развал и схождение</strong><p>Развал — наклон колеса. Схождение — направление колёс относительно друг друга.</p><p>Меняйте углы ползунками: пояснение слева покажет результат.</p></div>
       <figcaption>Красные линии — текущие углы, серые — эталон</figcaption>
     </figure>
   </div>
@@ -100,6 +105,8 @@
   </div>
 </section>
 
+<section id="photos" class="sec wrap" aria-labelledby="photosTitle"><div class="sec-head"><p class="eyebrow">Наш сервис</p><h2 id="photosTitle">Фотографии сервиса</h2></div><div class="photo-grid" aria-live="polite"></div><p class="photo-status">Загружаем фотографии…</p></section>
+
 <section id="brands" class="sec wrap">
   <div class="sec-head"><p class="eyebrow">Марки</p><h2>${E(C.brands.title)}</h2></div>
   <dl class="brands">${C.brands.groups.map(g => `<div><dt>${E(g.group)}</dt><dd>${E(g.list)}</dd></div>`).join('')}</dl>
@@ -111,12 +118,22 @@
   <a class="more" href="${E(safeUrl(r.url))}" target="_blank" rel="noopener">Все отзывы на ${E(r.source)}</a>
 </section>
 
+<section id="questions" class="sec wrap">
+  <div class="sec-head"><p class="eyebrow">Перед визитом</p><h2>Понятно ещё<br>до записи.</h2><p>Выберите услугу или опишите проблему своими словами. Детали уточним при звонке.</p></div>
+  <div class="questions">
+    <details><summary>Не знаю, какая услуга нужна. Как записаться?</summary><p>Выберите «Диагностика» или «Другое» и расскажите в поле «Что случилось», что беспокоит: шум, ошибка на панели или поведение автомобиля.</p></details>
+    <details><summary>Выбранные дата и время — это уже запись?</summary><p>Это ваши пожелания. ${E(bk.text)} Дождитесь подтверждения перед визитом.</p></details>
+    <details><summary>Что указать в заявке?</summary><p>Достаточно имени и телефона для обратного звонка. Марка, модель и описание проблемы помогут быстрее разобраться в задаче.</p></details>
+    <details><summary>Как найти автосервис?</summary><p>${E(k.address)}. Часы работы: ${E(k.hours)}.</p><a class="more" href="${E(safeUrl(k.mapUrl))}" target="_blank" rel="noopener">Показать на Яндекс Картах</a></details>
+  </div>
+</section>
+
 <section id="booking" class="sec wrap">
   <div class="sec-head"><p class="eyebrow">${E(bk.eyebrow)}</p><h2>${E(bk.title)}</h2><p>${E(bk.text)}</p></div>
   <div class="book">
     <form class="lead" id="leadForm">
       <div class="fld"><label for="f-name">Имя</label><input id="f-name" name="name" autocomplete="name" maxlength="80" placeholder="Как к вам обращаться" required></div>
-      <div class="fld"><label for="f-phone">Телефон</label><input id="f-phone" name="phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="+7 (___) ___-__-__" maxlength="18" required></div>
+      <div class="fld"><label for="f-phone">Телефон</label><input id="f-phone" name="phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="+7 (___) ___-__-__" maxlength="18" aria-describedby="phoneHint" required><small id="phoneHint">Российский номер, 10 цифр после +7</small></div>
       <div class="fld"><label for="f-car">Автомобиль</label><input id="f-car" name="car" maxlength="80" placeholder="Марка, модель, год"></div>
       <div class="fld"><label for="f-service">Услуга</label><select id="f-service" name="service"><option value="">Выберите услугу</option>${s.items.map(i => `<option>${E(i.name)}</option>`).join('')}<option>Диагностика</option><option>Другое</option></select></div>
       <div class="fld"><label for="f-date">Удобная дата</label><input id="f-date" name="date" type="date"></div>
@@ -124,7 +141,8 @@
       <div class="fld full"><label for="f-comment">Что случилось</label><textarea id="f-comment" name="comment" maxlength="600" placeholder="Стук, горит ошибка, нужна замена масла"></textarea></div>
       <input class="hp" name="website" tabindex="-1" autocomplete="off" aria-hidden="true">
       <label class="consent"><input type="checkbox" name="consent" id="f-consent" required><span>${E(bk.consent)}</span></label>
-      <div class="submit"><button class="btn primary" type="submit">Отправить заявку</button><span class="msg" id="formMsg" role="status"></span></div>
+      <p class="booking-note full">Дата и время предварительные. Запись подтвердим по телефону.</p>
+      <div class="submit"><button class="btn primary" type="submit">Отправить заявку</button><span class="msg" id="formMsg" role="status" aria-live="polite"></span></div>
     </form>
     <dl class="contacts">
       <div><dt>Телефон</dt><dd class="big"><a href="${telHref(k.phone)}">${E(k.phone)}</a>${k.phone2 ? `<br><a href="${telHref(k.phone2)}">${E(k.phone2)}</a>` : ''}</dd></div>
@@ -136,7 +154,34 @@
   </div>
 </section>
 </main>
-<div class="mobile-dock"><a href="${telHref(k.phone)}">Позвонить</a><a href="#booking">Записаться на сервис</a></div><footer><div class="wrap"><a class="footer-logo" href="#top">810<span>АВТОСЕРВИС · УРАЙ</span></a><span>${E(C.footer.legal)}</span><span><a href="${adminHref()}">Вход для сотрудников</a></span></div></footer>`;
+<div class="mobile-dock"><a href="${telHref(k.phone)}">Позвонить</a><a href="#booking">Записаться на сервис</a></div><footer><div class="wrap"><a class="footer-logo" href="#top">${E(b.short)}<span>АВТОСЕРВИС · ${E(b.city)}</span></a><span>${E(C.footer.legal)}</span><span><a href="${adminHref()}">Вход для сотрудников</a></span></div></footer>`;
+  }
+
+  async function mountPhotos(root) {
+    const grid = root.querySelector('.photo-grid'), status = root.querySelector('.photo-status');
+    try {
+      const response = await fetch('photos/photos.json');
+      if (!response.ok) throw new Error('photos');
+      const photos = await response.json();
+      photos.sort((a,b) => Number(b.file.includes('team-01')) - Number(a.file.includes('team-01')));
+      if (!grid.isConnected) return;
+      grid.innerHTML = photos.map((p,i) => `<button type="button" class="photo-tile" data-photo="${i}" aria-label="Открыть: ${E(p.caption)}"><img src="photos/${E(p.file.replace(/^photos\//,''))}" alt="${E(p.caption)}" loading="lazy"><span>${E(p.caption)}</span></button>`).join('');
+      status.hidden = true;
+      const dialog = document.createElement('dialog'); dialog.className = 'photo-lightbox';
+      dialog.setAttribute('aria-label','Просмотр фотографий сервиса');
+      dialog.innerHTML = '<button class="photo-close" aria-label="Закрыть">×</button><button class="photo-prev" aria-label="Предыдущее фото">‹</button><figure><img alt=""><figcaption></figcaption></figure><button class="photo-next" aria-label="Следующее фото">›</button>';
+      root.append(dialog);
+      let index = 0, opener = null;
+      const show = i => { index = (i + photos.length) % photos.length; const p = photos[index]; dialog.querySelector('img').src = 'photos/' + p.file.replace(/^photos\//,''); dialog.querySelector('img').alt = p.caption; dialog.querySelector('figcaption').textContent = p.caption + ' · ' + (index+1) + ' / ' + photos.length; };
+      const close = () => dialog.close();
+      grid.addEventListener('click', e => { const tile = e.target.closest('[data-photo]'); if (!tile) return; opener = tile; show(Number(tile.dataset.photo)); dialog.showModal(); document.body.classList.add('photo-open'); });
+      dialog.querySelector('.photo-close').onclick = close;
+      dialog.querySelector('.photo-prev').onclick = () => show(index-1);
+      dialog.querySelector('.photo-next').onclick = () => show(index+1);
+      dialog.addEventListener('click', e => { if (e.target === dialog) close(); });
+      dialog.addEventListener('keydown', e => { if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') { e.preventDefault(); show(index + (e.key === 'ArrowRight' ? 1 : -1)); } });
+      dialog.addEventListener('close', () => { document.body.classList.remove('photo-open'); if (opener && opener.isConnected) opener.focus({preventScroll:true}); });
+    } catch (e) { status.textContent = 'Не удалось загрузить фотографии. Попробуйте обновить страницу.'; }
   }
 
   function maskPhone(v) {
@@ -152,21 +197,29 @@
     document.addEventListener('keydown', e => { if (e.key === 'Escape') { toggle.setAttribute('aria-expanded', 'false'); nav.classList.remove('open'); } });
     root.querySelectorAll('[data-service]').forEach(a => a.addEventListener('click', () => {
       const sel = $('#f-service'); const v = a.dataset.service;
+      if (!sel) return;
       if (![...sel.options].some(o => o.value === v || o.text === v)) { const o = document.createElement('option'); o.text = v; sel.add(o, 1); }
       sel.value = v;
     }));
-    const phone = $('#f-phone'); phone.addEventListener('input', () => { phone.value = maskPhone(phone.value); });
+    const phone = $('#f-phone');
+    const validatePhone = () => phone.setCustomValidity(phone.value.replace(/\D/g, '').length === 11 ? '' : 'Введите полный номер телефона: 10 цифр после +7');
+    phone.addEventListener('input', () => { phone.value = maskPhone(phone.value); validatePhone(); });
+    phone.addEventListener('blur', validatePhone);
     const d = new Date(); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); $('#f-date').min = d.toISOString().slice(0, 10);
 
     const form = $('#leadForm'), msg = $('#formMsg');
     form.addEventListener('submit', async e => {
-      e.preventDefault(); msg.className = 'msg'; msg.textContent = '';
+      e.preventDefault();
+      if (form.getAttribute('aria-busy') === 'true') return;
+      validatePhone(); if (!form.reportValidity()) return;
+      msg.className = 'msg'; msg.textContent = 'Отправляем заявку…';
       const fd = new FormData(form); const body = Object.fromEntries(fd.entries()); body.consent = $('#f-consent').checked;
-      const btn = form.querySelector('button[type=submit]'); btn.disabled = true;
+      const btn = form.querySelector('button[type=submit]'); btn.disabled = true; form.setAttribute('aria-busy', 'true');
       try {
         await A.submitLead(body);
-        form.outerHTML = `<div class="done" role="status"><h3>Спасибо, ${E(body.name)}</h3><p>${E(C.booking.success)}</p></div>`;
-      } catch (err) { msg.className = 'msg err'; msg.textContent = err.message; btn.disabled = false; }
+        form.outerHTML = `<div class="done" role="status" tabindex="-1"><h3>Спасибо, ${E(body.name)}</h3><p>${A.mode === 'demo' ? 'Это демонстрация: заявка сохранена только в этом браузере и не отправлена в автосервис.' : E(C.booking.success)}</p><p>Если нужно уточнить детали, позвоните: <a href="${telHref(C.contacts.phone)}">${E(C.contacts.phone)}</a>.</p></div>`;
+        $('.done', root).focus();
+      } catch (err) { msg.className = 'msg err'; msg.textContent = err.message; btn.disabled = false; form.removeAttribute('aria-busy'); }
     });
 
     /* 3D-стенд */
@@ -184,6 +237,7 @@
     let anim = 0;
     root.querySelectorAll('[data-preset]').forEach(b => b.addEventListener('click', () => {
       const [tc, tt] = b.dataset.preset.split(',').map(Number); const c0 = Number(cam.value), t0 = Number(toe.value); const t1 = performance.now(); cancelAnimationFrame(anim);
+      if (matchMedia('(prefers-reduced-motion: reduce)').matches) { cam.value = tc; toe.value = tt; read(); return; }
       const step = now => { const k = Math.min(1, (now - t1) / 700), e = 1 - Math.pow(1 - k, 3); cam.value = c0 + (tc - c0) * e; toe.value = t0 + (tt - t0) * e; read(); if (k < 1) anim = requestAnimationFrame(step); };
       anim = requestAnimationFrame(step);
     }));
@@ -201,7 +255,7 @@
   function renderSite() {
     if (disc) { disc.destroy(); disc = null; } if (align) { align.destroy(); align = null; }
     applyTheme(); setMeta();
-    const app = $('#app'); app.innerHTML = html(); wire(app); mount3d();
+    const app = $('#app'); app.innerHTML = html(); wire(app); mount3d(); mountPhotos(app);
     rendered = true; dirty = false;
   }
 

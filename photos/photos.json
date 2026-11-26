@@ -1,0 +1,57 @@
+[
+ {
+  "file": "photos/workshop-lift.jpg",
+  "caption": "Подъёмник",
+  "kb": 337
+ },
+ {
+  "file": "photos/parts-shop.jpg",
+  "caption": "Магазин запчастей",
+  "kb": 107
+ },
+ {
+  "file": "photos/team-02.jpg",
+  "caption": "Команда",
+  "kb": 408
+ },
+ {
+  "file": "photos/aggregates.jpg",
+  "caption": "Ремонт агрегатов",
+  "kb": 142
+ },
+ {
+  "file": "photos/engine.jpg",
+  "caption": "Ремонт двигателей",
+  "kb": 75
+ },
+ {
+  "file": "photos/tire-service.jpg",
+  "caption": "Шиномонтаж",
+  "kb": 118
+ },
+ {
+  "file": "photos/master-work.jpg",
+  "caption": "Мастер за работой",
+  "kb": 61
+ },
+ {
+  "file": "photos/workshop-zone.jpg",
+  "caption": "Рабочая зона",
+  "kb": 164
+ },
+ {
+  "file": "photos/workshop-hall.jpg",
+  "caption": "Цех",
+  "kb": 157
+ },
+ {
+  "file": "photos/diagnostics.jpg",
+  "caption": "Компьютерная диагностика",
+  "kb": 89
+ },
+ {
+  "file": "photos/team-01.jpg",
+  "caption": "Наши мастера",
+  "kb": 210
+ }
+]

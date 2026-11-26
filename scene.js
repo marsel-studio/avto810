@@ -10,6 +10,7 @@
     r.outputEncoding = THREE.sRGBEncoding;
     r.toneMapping = THREE.ACESFilmicToneMapping;
     r.toneMappingExposure = 1.1;
+    r.shadowMap.enabled = true; r.shadowMap.type = THREE.PCFSoftShadowMap;
     return r;
   }
 
@@ -52,7 +53,7 @@
     ro.observe(stage);
     document.addEventListener('visibilitychange', kick);
     size(); draw(0, 0); kick();
-    return () => { alive = false; io.disconnect(); ro.disconnect(); cancelAnimationFrame(raf); };
+    return () => { alive = false; io.disconnect(); ro.disconnect(); cancelAnimationFrame(raf); document.removeEventListener('visibilitychange', kick); };
   }
 
   function sector(r0, r1, a0, a1) {
@@ -71,6 +72,24 @@
   }
 
   /* ---------- Тормозной диск ---------- */
+  function wheelAssembly(simple) {
+    const g=new THREE.Group();
+    const rubber=new THREE.MeshStandardMaterial({color:0x16181b,roughness:0.91,metalness:0.02});
+    const alloy=new THREE.MeshStandardMaterial({color:0xcbd0d7,roughness:0.23,metalness:1});
+    const inner=new THREE.MeshStandardMaterial({color:0x353b43,roughness:0.38,metalness:0.85,side:THREE.DoubleSide});
+    const add=(geo,mat,z=0)=>{const m=new THREE.Mesh(geo,mat);m.position.z=z;m.castShadow=true;m.receiveShadow=true;g.add(m);return m;};
+    const tire=add(new THREE.TorusGeometry(1.24,0.22,32,simple?64:112),rubber);tire.scale.z=1.35;
+    [-0.15,0,0.15].forEach(z=>add(new THREE.TorusGeometry(1.447-Math.abs(z)*0.12,0.009,6,96),inner,z));
+    if(!simple){const tread=new THREE.InstancedMesh(new THREE.BoxGeometry(0.025,0.012,0.12),rubber,192);const dummy=new THREE.Object3D();for(let i=0;i<96;i++)for(let row=0;row<2;row++){const a=i/96*Math.PI*2;dummy.position.set(Math.cos(a)*1.45,Math.sin(a)*1.45,(row?1:-1)*0.105);dummy.rotation.set(0,0,a-Math.PI/2+(row?0.18:-0.18));dummy.updateMatrix();tread.setMatrixAt(i*2+row,dummy.matrix);}g.add(tread);}
+    const barrel=add(new THREE.CylinderGeometry(1.045,1.045,0.43,80,1,true),inner);barrel.rotation.x=Math.PI/2;
+    [-0.21,0.25].forEach(z=>{add(new THREE.TorusGeometry(1.045,0.035,12,96),alloy,z);add(new THREE.RingGeometry(0.99,1.07,96),alloy,z);});
+    for(let i=0;i<10;i++){const shape=new THREE.Shape();shape.moveTo(0.23,-0.055);shape.lineTo(0.99,-0.045);shape.lineTo(1.025,0.035);shape.lineTo(0.5,0.11);shape.lineTo(0.23,0.075);shape.closePath();const spoke=slab(shape,0.065,0.18,alloy,0.012);spoke.rotation.z=i/10*Math.PI*2;spoke.castShadow=true;g.add(spoke);}
+    const hub=add(new THREE.CylinderGeometry(0.25,0.27,0.15,48),alloy,0.22);hub.rotation.x=Math.PI/2;add(new THREE.CircleGeometry(0.13,32),inner,0.302);
+    for(let i=0;i<5;i++){const a=i/5*Math.PI*2;const bolt=add(new THREE.CylinderGeometry(0.032,0.032,0.065,6),alloy,0.318);bolt.rotation.x=Math.PI/2;bolt.position.x=Math.cos(a)*0.193;bolt.position.y=Math.sin(a)*0.193;}
+    return g;
+  }
+  function softFloor(scene,light,y){light.castShadow=true;light.shadow.mapSize.set(1024,1024);light.shadow.camera.left=-5;light.shadow.camera.right=5;light.shadow.camera.top=5;light.shadow.camera.bottom=-5;light.shadow.normalBias=0.025;light.shadow.radius=4;scene.add(new THREE.HemisphereLight(0xe3ebff,0x25272b,0.45));const floor=new THREE.Mesh(new THREE.PlaneGeometry(18,18),new THREE.ShadowMaterial({opacity:0.24}));floor.rotation.x=-Math.PI/2;floor.position.y=y;floor.receiveShadow=true;scene.add(floor);}
+
   S.disc = function (stage, opts) {
     opts = opts || {};
     const canvas = stage.querySelector('canvas');
@@ -78,13 +97,14 @@
     const scene = new THREE.Scene();
     scene.environment = studioEnv(renderer);
     const camera = new THREE.PerspectiveCamera(30, 1, 0.1, 50);
-    camera.position.set(0, 0, 5);
+    camera.position.set(0, 0, 6.7);
 
     const key = new THREE.DirectionalLight(0xffffff, 0.9); key.position.set(3, 4, 5); scene.add(key);
     const rim = new THREE.DirectionalLight(0x9db8ff, 0.7); rim.position.set(-4, 1, -3); scene.add(rim);
 
     const root = new THREE.Group(); scene.add(root);
     const spin = new THREE.Group(); root.add(spin);
+    spin.add(wheelAssembly(false)); softFloor(scene,key,-1.49);
 
     const D = 0.13;
     const iron = new THREE.MeshStandardMaterial({ color: 0xc5cad2, metalness: 1, roughness: 0.28 });
@@ -99,7 +119,10 @@
         p.absarc(Math.cos(a) * r, Math.sin(a) * r, 0.036, 0, Math.PI * 2, true); sh.holes.push(p);
       }
     });
-    const rotor = slab(sh, D, -D / 2, iron, 0.008); spin.add(rotor);
+    const rotor = slab(sh, D, -D / 2, iron, 0.008); rotor.castShadow=true;rotor.receiveShadow=true;spin.add(rotor);
+    // Две щеки ротора с радиальными вентиляционными каналами.
+    const back=slab(sh,0.035,-0.14,iron,0.003);spin.add(back);
+    for(let i=0;i<40;i++){const a=i/40*Math.PI*2;const vane=new THREE.Mesh(new THREE.BoxGeometry(0.36,0.017,0.065),groove);vane.position.set(Math.cos(a)*0.79,Math.sin(a)*0.79,-0.09);vane.rotation.z=a+0.12;spin.add(vane);}
 
     [[0.5, 0.52], [0.6, 0.61], [0.945, 0.965]].forEach(([a, b]) => {
       [1, -1].forEach(side => {
@@ -122,10 +145,11 @@
       hole.position.set(Math.cos(a) * 0.27, Math.sin(a) * 0.27, -D / 2 + 0.2105); spin.add(hole);
     }
 
-    const calMat = new THREE.MeshPhysicalMaterial({ color: new THREE.Color(opts.caliper || '#c8102e'), metalness: 0.25, roughness: 0.34, clearcoat: 1, clearcoatRoughness: 0.08 });
+    const calMat = new THREE.MeshPhysicalMaterial({ color: new THREE.Color(opts.caliper || '#8b1526').multiplyScalar(0.38), metalness: 0.25, roughness: 0.34, clearcoat: 1, clearcoatRoughness: 0.08 });
     const padMat = new THREE.MeshStandardMaterial({ color: 0x25272b, metalness: 0.1, roughness: 0.92 });
-    const cal = new THREE.Group(); cal.rotation.z = 0.62; root.add(cal);
+    const cal = new THREE.Group(); cal.rotation.z = 0.62; cal.position.z = -0.13; root.add(cal);
     const A = 0.4;
+    [-0.19,0.19].forEach(a => { const piston=new THREE.Mesh(new THREE.CylinderGeometry(0.11,0.11,0.10,32),castHat);piston.rotation.x=Math.PI/2;piston.position.set(Math.cos(a)*0.81,Math.sin(a)*0.81,0.32);cal.add(piston); });
     cal.add(slab(sector(0.6, 1.04, -A, A), 0.2, D / 2 + 0.04, calMat));
     cal.add(slab(sector(0.6, 1.04, -A, A), 0.2, -D / 2 - 0.04 - 0.2, calMat));
     cal.add(slab(sector(1.05, 1.17, -A, A), D + 0.08 + 0.4, -(D / 2 + 0.04 + 0.2), calMat));
@@ -168,10 +192,10 @@
         el.style.transform = 'translate(' + ((v.x * 0.5 + 0.5) * w).toFixed(1) + 'px,' + ((-v.y * 0.5 + 0.5) * h).toFixed(1) + 'px)';
       });
       renderer.render(scene, camera);
-    }, (w, h, cam) => { const asp = w / h; cam.position.z = asp < 1 ? 5 / Math.min(1, asp * 1.25) : 5; });
+    }, (w, h, cam) => { const asp = w / h; cam.position.z = asp < 1 ? 6.7 / Math.min(1, asp * 1.25) : 6.7; });
 
     return {
-      setCaliper(c) { calMat.color.set(c); },
+      setCaliper(c) { calMat.color.set(c).multiplyScalar(0.38); },
       setSpin(s) { spinSpeed = s; },
       destroy() { stop(); renderer.dispose(); }
     };
@@ -188,6 +212,7 @@
     camera.position.set(2.2, 2.2, 6.2); camera.lookAt(0, 0.55, 0.2);
 
     const sun = new THREE.DirectionalLight(0xffffff, 0.8); sun.position.set(3, 6, 4); scene.add(sun);
+    softFloor(scene,sun,-0.12);
     const world = new THREE.Group(); scene.add(world);
 
     const grid = new THREE.GridHelper(10, 20, 0x2b3038, 0x191c21); world.add(grid);
@@ -202,14 +227,7 @@
       const pos = new THREE.Group(); pos.position.set(side * 1.45, Y, 0); world.add(pos);
       const toe = new THREE.Group(); pos.add(toe);
       const cam = new THREE.Group(); toe.add(cam);
-      const tire = new THREE.Mesh(new THREE.TorusGeometry(0.42, 0.2, 28, 72), rubber); tire.rotation.y = Math.PI / 2; cam.add(tire);
-      const rim = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.4, 0.3, 48), metal); rim.rotation.z = Math.PI / 2; cam.add(rim);
-      const face = new THREE.Mesh(new THREE.CylinderGeometry(0.33, 0.33, 0.02, 48), dark); face.rotation.z = Math.PI / 2; face.position.x = side * 0.15; cam.add(face);
-      for (let i = 0; i < 5; i++) {
-        const sp = new THREE.Group(); sp.rotation.x = i / 5 * Math.PI * 2;
-        const b = new THREE.Mesh(new THREE.BoxGeometry(0.045, 0.3, 0.075), metal); b.position.set(side * 0.17, 0.19, 0); sp.add(b); cam.add(sp);
-      }
-      const hub = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.09, 0.06, 24), metal); hub.rotation.z = Math.PI / 2; hub.position.x = side * 0.18; cam.add(hub);
+      const wheel=wheelAssembly(true);wheel.scale.setScalar(R/1.46);wheel.rotation.y=side*Math.PI/2;cam.add(wheel);
       const up = new THREE.Mesh(new THREE.BoxGeometry(0.014, 1.7, 0.014), beamMat); up.position.y = 0.85; cam.add(up);
       const fwd = new THREE.Mesh(new THREE.BoxGeometry(0.014, 0.014, 3.2), beamMat); fwd.position.z = 1.6; toe.add(fwd);
       const plumb = new THREE.Mesh(new THREE.BoxGeometry(0.01, 1.7, 0.01), refMat); plumb.position.y = 0.85; pos.add(plumb);
@@ -219,6 +237,14 @@
     const axle = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.045, 2.9, 20), metal); axle.rotation.z = Math.PI / 2; axle.position.y = Y; world.add(axle);
     const block = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.22, 1.2), dark); block.position.set(0, Y, -0.25); world.add(block);
 
+    // Неподвижные платформы, поворотные круги и датчики стенда.
+    [1,-1].forEach(side => {
+      const platform=new THREE.Mesh(new THREE.BoxGeometry(1.0,0.12,2.65),dark);platform.position.set(side*1.45,-0.09,0.15);platform.receiveShadow=true;world.add(platform);
+      const turn=new THREE.Mesh(new THREE.CylinderGeometry(0.53,0.53,0.035,64),metal);turn.position.set(side*1.45,-0.013,0);turn.receiveShadow=true;world.add(turn);
+      const post=new THREE.Mesh(new THREE.BoxGeometry(0.09,1.75,0.09),metal);post.position.set(side*2.05,0.78,-0.95);post.castShadow=true;world.add(post);
+      const sensor=new THREE.Mesh(new THREE.BoxGeometry(0.3,0.20,0.23),dark);sensor.position.set(side*2.05,1.7,-0.95);sensor.castShadow=true;world.add(sensor);
+      const lens=new THREE.Mesh(new THREE.CylinderGeometry(0.055,0.055,0.025,24),new THREE.MeshPhysicalMaterial({color:0x497b95,metalness:0.5,roughness:0.16,clearcoat:1}));lens.rotation.x=Math.PI/2;lens.position.set(side*2.05,1.7,-0.82);world.add(lens);
+    });
     const target = { c: 0, t: 0 }, cur = { c: 0, t: 0 }, K = 3 * Math.PI / 180;
     let yaw = -0.35, drag = null;
     canvas.addEventListener('pointerdown', e => { drag = e.clientX; canvas.setPointerCapture(e.pointerId); stage.classList.add('grabbing'); });
