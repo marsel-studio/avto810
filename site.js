@@ -31,32 +31,29 @@
     const b = C.brand, h = C.hero, r = C.rating, k = C.contacts, s = C.services, st = C.stand, bk = C.booking;
     const title = E(h.title).replace(/(\d+)/, '<span class="num">$1</span>');
     return `
-<header class="top"><div class="wrap">
-  <a class="logo" href="#top" aria-label="${E(b.name)}"><b>${E(b.short)}</b><span>${E(b.city)}</span></a>
-  <nav class="nav" aria-label="Разделы"><a href="#services">Услуги</a><a href="#stand">3D-стенд</a><a href="#why">Почему мы</a><a href="#reviews">Отзывы</a><a href="#booking">Контакты</a></nav>
+<a class="skip-link" href="#services">Перейти к содержимому</a><header class="top"><div class="wrap">
+  <a class="logo" href="#top" aria-label="${E(b.name)}"><b>${E(b.short)}</b><span>АВТОСЕРВИС<br><em>${E(b.city)} · Югра</em></span></a>
+  <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="siteNav" aria-label="Открыть меню"><span></span><span></span></button><nav id="siteNav" class="nav" aria-label="Разделы"><a href="#services">Услуги</a><a href="#stand">3D-стенд</a><a href="#why">Почему мы</a><a href="#reviews">Отзывы</a><a href="#booking">Контакты</a></nav>
   <a class="tel" href="${telHref(k.phone)}">${E(k.phone)}</a>
   <a class="btn primary sm" href="#booking">Записаться</a>
 </div></header>
 <main id="top">
-<section class="hero wrap">
-  <div>
-    <p class="eyebrow">${E(h.eyebrow)}</p>
-    <h1>${title}</h1>
-    <p class="lead">${E(h.lead)}</p>
-    <div class="cta"><a class="btn primary" href="#booking">${E(h.cta)}</a><a class="btn ghost" href="#services">${E(h.cta2)}</a></div>
-    <dl class="facts">
-      <div><dt>Рейтинг</dt><dd>${E(r.value)}</dd></div>
-      <div><dt>Оценок</dt><dd>${E(r.count)}</dd></div>
-      <div><dt>${E(r.source)}</dt><dd class="t">${E(r.award)}</dd></div>
-    </dl>
+<section class="hero-shell">
+  <img class="hero-image" src="assets/hero-car.jpg" alt="Серебристый спортивный автомобиль на дороге" fetchpriority="high" width="2000" height="1333">
+  <div class="hero-shade"></div>
+  <div class="hero wrap">
+    <div class="hero-copy">
+      <p class="eyebrow">${E(h.eyebrow)} · Ремонт и обслуживание</p>
+      <h1>${h.title === 'Автосервис 810' ? 'Уверенность<br>в каждом<br><span class="accent-word">километре.</span>' : title}</h1>
+      <p class="lead">${E(h.lead)}</p>
+      <div class="cta"><a class="btn primary" href="#booking">${E(h.cta)}</a><a class="btn ghost" href="#services">${E(h.cta2)}</a></div>
+      <a class="hero-rating" href="${E(safeUrl(r.url))}" target="_blank" rel="noopener"><strong>${E(r.value)}</strong><span><span class="stars" aria-label="5 звёзд">★★★★★</span><br>${E(r.count)} оценок · ${E(r.source)}</span><span class="rating-award">${E(r.award)}</span></a>
+    </div>
+    <div class="hero-caption"><span>810 / АВТОСЕРВИС</span><span>Точность в деталях.<br>Спокойствие за рулём.</span></div>
   </div>
-  <figure class="stage" id="stageDisc" aria-label="Интерактивная 3D-модель тормозного диска с суппортом">
-    <canvas></canvas><div class="fallback" aria-hidden="true">${E(b.short)}</div>
-    <div class="tag" data-tag="caliper"><span>Суппорт</span></div>
-    <div class="tag l" data-tag="disc"><span>Вентилируемый диск</span></div>
-    <figcaption>Потяните, чтобы повернуть</figcaption>
-  </figure>
+  <div class="hero-bottom wrap"><span>${E(k.address)}</span><span>${E(k.hours)}</span><a href="#services">Узнать о сервисе</a></div>
 </section>
+<div class="trust-strip"><div class="wrap"><span>Стоимость согласуем заранее</span><span>Гарантия на работы и запчасти</span><span>Легковые и коммерческие авто</span></div></div>
 
 <section id="services" class="sec wrap">
   <div class="sec-head"><p class="eyebrow">Услуги</p><h2>${E(s.title)}</h2><p>${E(s.lead)}</p></div>
@@ -71,8 +68,8 @@
   <div class="stand">
     <div>
       <p class="eyebrow">${E(st.eyebrow)}</p>
-      <h2 style="font-size:clamp(1.55rem,3.3vw,2.6rem);line-height:1.1">${E(st.title)}</h2>
-      <p class="lead" style="margin-top:20px;font-size:1rem">${E(st.text)}</p>
+      <h2 style="font-size:clamp(1.55rem,3.3vw,2.6rem);line-height:1.1">Точная настройка.<br>Правильная траектория.</h2>
+      <p class="lead" style="margin-top:20px;font-size:1rem">Регулируем развал и схождение на профессиональном 3D-стенде по данным производителя. Автомобиль держит дорогу, шины изнашиваются равномерно.</p><details class="stand-details"><summary>Как работает сход-развал</summary><p>${E(st.text)}</p></details>
       <div class="ctl">
         <label for="camber"><span class="val"><span>Развал</span><output id="camberOut">0.0°</output></span><input id="camber" type="range" min="-4" max="4" step="0.1" value="0"></label>
         <label for="toe"><span class="val"><span>Схождение</span><output id="toeOut">0.00°</output></span><input id="toe" type="range" min="-2" max="2" step="0.05" value="0"></label>
@@ -93,7 +90,7 @@
 </section>
 
 <section id="why" class="sec wrap">
-  <div class="why">
+  <div class="sec-head"><p class="eyebrow">Подход к работе</p><h2>Ваш автомобиль.<br>Наша ответственность.</h2><p>Понятная стоимость, согласованные сроки и внимание к деталям — от первого звонка до выдачи автомобиля.</p></div><div class="why">
     <ul class="why-list">${C.why.map(w => `<li><h3>${E(w.title)}</h3><p>${E(w.text)}</p></li>`).join('')}</ul>
     <div class="bars">
       <h3>${E(C.satisfaction.title)}</h3>
@@ -110,14 +107,14 @@
 
 <section id="reviews" class="sec wrap">
   <div class="sec-head"><p class="eyebrow">${E(r.source)}</p><h2>${E(C.reviews.title)}</h2></div>
-  <div class="reviews">${C.reviews.items.map(v => `<figure class="review"><blockquote>${E(v.text)}</blockquote><figcaption><b>${E(v.author)}</b><span>${E(v.date)}</span></figcaption></figure>`).join('')}</div>
+  <div class="reviews">${C.reviews.items.map(v => `<figure class="review"><span class="stars" aria-label="5 звёзд">★★★★★</span><blockquote>${E(v.text)}</blockquote><figcaption><b>${E(v.author)}</b><span>${E(v.date)}</span></figcaption></figure>`).join('')}</div>
   <a class="more" href="${E(safeUrl(r.url))}" target="_blank" rel="noopener">Все отзывы на ${E(r.source)}</a>
 </section>
 
 <section id="booking" class="sec wrap">
   <div class="sec-head"><p class="eyebrow">${E(bk.eyebrow)}</p><h2>${E(bk.title)}</h2><p>${E(bk.text)}</p></div>
   <div class="book">
-    <form class="lead" id="leadForm" novalidate>
+    <form class="lead" id="leadForm">
       <div class="fld"><label for="f-name">Имя</label><input id="f-name" name="name" autocomplete="name" maxlength="80" placeholder="Как к вам обращаться" required></div>
       <div class="fld"><label for="f-phone">Телефон</label><input id="f-phone" name="phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="+7 (___) ___-__-__" maxlength="18" required></div>
       <div class="fld"><label for="f-car">Автомобиль</label><input id="f-car" name="car" maxlength="80" placeholder="Марка, модель, год"></div>
@@ -126,7 +123,7 @@
       <div class="fld"><label for="f-time">Удобное время</label><input id="f-time" name="time" type="time"></div>
       <div class="fld full"><label for="f-comment">Что случилось</label><textarea id="f-comment" name="comment" maxlength="600" placeholder="Стук, горит ошибка, нужна замена масла"></textarea></div>
       <input class="hp" name="website" tabindex="-1" autocomplete="off" aria-hidden="true">
-      <label class="consent"><input type="checkbox" name="consent" id="f-consent"><span>${E(bk.consent)}</span></label>
+      <label class="consent"><input type="checkbox" name="consent" id="f-consent" required><span>${E(bk.consent)}</span></label>
       <div class="submit"><button class="btn primary" type="submit">Отправить заявку</button><span class="msg" id="formMsg" role="status"></span></div>
     </form>
     <dl class="contacts">
@@ -139,7 +136,7 @@
   </div>
 </section>
 </main>
-<footer><div class="wrap"><span>${E(C.footer.legal)}</span><span><a href="${adminHref()}">Вход для сотрудников</a></span></div></footer>`;
+<div class="mobile-dock"><a href="${telHref(k.phone)}">Позвонить</a><a href="#booking">Записаться на сервис</a></div><footer><div class="wrap"><a class="footer-logo" href="#top">810<span>АВТОСЕРВИС · УРАЙ</span></a><span>${E(C.footer.legal)}</span><span><a href="${adminHref()}">Вход для сотрудников</a></span></div></footer>`;
   }
 
   function maskPhone(v) {
@@ -149,6 +146,10 @@
   }
 
   function wire(root) {
+    const toggle = $('.menu-toggle'), nav = $('#siteNav');
+    toggle.addEventListener('click', () => { const open = toggle.getAttribute('aria-expanded') !== 'true'; toggle.setAttribute('aria-expanded', String(open)); nav.classList.toggle('open', open); });
+    nav.querySelectorAll('a').forEach(a => a.addEventListener('click', () => { toggle.setAttribute('aria-expanded', 'false'); nav.classList.remove('open'); }));
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') { toggle.setAttribute('aria-expanded', 'false'); nav.classList.remove('open'); } });
     root.querySelectorAll('[data-service]').forEach(a => a.addEventListener('click', () => {
       const sel = $('#f-service'); const v = a.dataset.service;
       if (![...sel.options].some(o => o.value === v || o.text === v)) { const o = document.createElement('option'); o.text = v; sel.add(o, 1); }
@@ -192,8 +193,8 @@
   function mount3d() {
     const t = C.theme || {};
     const a = $('#stageDisc'), b = $('#stageAlign');
-    if (t.enable3d === false || typeof THREE === 'undefined' || !window.Scenes) { a.classList.add('no3d'); b.classList.add('no3d'); return; }
-    try { disc = Scenes.disc(a, { caliper: t.caliper, spin: Number(t.spin) }); } catch (e) { a.classList.add('no3d'); disc = null; }
+    if (t.enable3d === false || typeof THREE === 'undefined' || !window.Scenes) { if (a) a.classList.add('no3d'); b.classList.add('no3d'); return; }
+    try { if (a) disc = Scenes.disc(a, { caliper: t.caliper, spin: Number(t.spin) }); } catch (e) { if (a) a.classList.add('no3d'); disc = null; }
     try { align = Scenes.align(b, { accent: t.accent }); align.set(Number($('#camber').value), Number($('#toe').value)); } catch (e) { b.classList.add('no3d'); align = null; }
   }
 
