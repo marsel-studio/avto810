@@ -143,3 +143,6 @@ a.adm-hint:hover { color: var(--fg); }
   .adm-tab i { padding: 2px 5px; font-size: .66rem; }
   .adm-sub { display: none; }
 }
+
+.adm-sec-content { padding: 16px 18px; }
+.adm-sec-content > .adm-card { border: 0; padding: 0; }

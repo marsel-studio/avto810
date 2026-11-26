@@ -28,7 +28,7 @@
     setTimeout(() => t.classList.add('out'), 2600); setTimeout(() => t.remove(), 3100);
   }
   const fmt = iso => { try { return new Date(iso).toLocaleString('ru-RU', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }); } catch (e) { return iso; } };
-  async function guard(fn) { try { return await fn(); } catch (e) { if (e.status === 401) { loginView(); } else if (e.mustChange) { tab = 'settings'; S.mustChange = true; render(); toast(e.message, true); } else toast(e.message, true); } }
+  async function guard(fn) { try { return await fn(); } catch (e) { if (e.status === 401) { loginView(); } else if (e.mustChange) { tab = 'settings'; S.mustChange = true; render(); toast(e.message, true); } else toast(e.status === 403 ? 'Доступно только владельцу' : e.message, true); } }
 
   window.mountAdmin = function (r) { root = r; start(); };
 
@@ -36,7 +36,7 @@
     root.replaceChildren(h('div', { class: 'adm-boot' }, 'Загрузка…'));
     try {
       S = await A.state(); draft = clone(S.content); nDraft = clone(S.notify); dirtyC = dirtyN = false;
-      if (S.mustChange) tab = 'settings';
+      if (S.role !== 'owner') tab = 'leads'; else if (S.mustChange) tab = 'settings';
       render(); clearInterval(timer);
       timer = setInterval(poll, 30000);
     } catch (e) { if (e.status === 401) loginView(); else root.replaceChildren(h('div', { class: 'adm-boot' }, e.message)); }
@@ -54,11 +54,11 @@
     const pw = h('input', { id: 'adm-pw', type: 'password', autocomplete: 'current-password', placeholder: 'Пароль', required: true });
     const form = h('form', { class: 'adm-login', onsubmit: async e => {
       e.preventDefault(); err.textContent = '';
-      try { const r = await A.login(pw.value); if (r.mustChange) tab = 'settings'; await start(); } catch (x) { err.textContent = x.message; }
+      try { const r = await A.login(pw.value); tab = r.role === 'owner' && r.mustChange ? 'settings' : 'leads'; await start(); } catch (x) { err.textContent = x.message; }
     } },
     h('h1', null, 'Вход в админку'), h('label', { for: 'adm-pw' }, 'Пароль'), pw, err,
     h('button', { class: 'adm-btn primary', type: 'submit' }, 'Войти'),
-    A.mode === 'demo' ? h('p', { class: 'adm-hint' }, 'Демо-режим: пароль admin810. Данные хранятся только в этом браузере, уведомления не отправляются.') : null,
+    A.mode === 'demo' ? h('p', { class: 'adm-hint' }, 'Демо-режим: вход для персонала и владельца. Данные хранятся только в этом браузере, уведомления не отправляются.') : null,
     h('a', { class: 'adm-hint', href: window.Site ? Site.homeHref() : '/' }, '← На сайт'));
     root.replaceChildren(h('div', { class: 'adm-center' }, form)); pw.focus();
   }
@@ -76,12 +76,12 @@
   }
   function renderTabs() {
     const n = S.leads.filter(l => l.status === 'new').length;
-    const defs = [['leads', 'Заявки', n], ['content', 'Контент'], ['notify', 'Уведомления'], ['settings', 'Настройки']];
-    tabsEl.replaceChildren(...defs.map(([id, name, badge]) => h('button', { type: 'button', role: 'tab', 'aria-selected': String(tab === id), class: 'adm-tab' + (tab === id ? ' on' : ''), disabled: S.mustChange && id !== 'settings', onclick: () => { tab = id; renderTabs(); renderBody(); } }, name, badge ? h('i', null, badge) : null)));
+    const defs = S.role === 'owner' ? [['leads', 'Заявки', n], ['services', 'Услуги'], ['reviews', 'Отзывы'], ['settings', 'Настройки']] : [['leads', 'Заявки', n]];
+    tabsEl.replaceChildren(...defs.map(([id, name, badge]) => h('button', { type: 'button', role: 'tab', 'aria-selected': String(tab === id), class: 'adm-tab' + (tab === id ? ' on' : ''), disabled: S.role === 'owner' && S.mustChange && id !== 'settings', onclick: () => { tab = id; renderTabs(); renderBody(); } }, name, badge ? h('i', null, badge) : null)));
   }
   function renderBody() {
     bar.replaceChildren(); bar.hidden = true;
-    const v = { leads: leadsView, content: contentView, notify: notifyView, settings: settingsView }[tab]();
+    const v = { leads: leadsView, services: () => contentView([SCHEMA[2]]), reviews: () => contentView([SCHEMA[6]]), settings: settingsView }[tab]();
     body.replaceChildren(v);
   }
 
@@ -114,9 +114,9 @@
         l.service ? h('div', null, h('dt', null, 'Услуга'), h('dd', null, l.service)) : null,
         l.date || l.time ? h('div', null, h('dt', null, 'Когда'), h('dd', null, [l.date, l.time].filter(Boolean).join(' '))) : null,
         l.comment ? h('div', { class: 'wide' }, h('dt', null, 'Комментарий'), h('dd', null, l.comment)) : null),
-      h('div', { class: 'adm-acts' }, act('accepted', 'Принять', 'primary'), act('done', 'Выполнена'), act('canceled', 'Отменить', 'ghost'), l.status !== 'new' ? act('new', 'Вернуть в новые', 'ghost') : null, del),
-      h('textarea', { class: 'adm-note', rows: '2', placeholder: 'Заметка для себя', 'aria-label': 'Заметка к заявке ' + l.id, value: l.note || '', onchange: e => guard(async () => { await A.patchLead(l.id, { note: e.target.value }); l.note = e.target.value; toast('Заметка сохранена'); }) }),
-      h('div', { class: 'adm-deliv' }, delivery.length ? delivery.map(ch => { const d = l.delivery[ch]; return h('span', { class: 'adm-dchip ' + (d.ok ? 'ok' : 'bad'), title: d.ok ? 'Доставлено ' + fmt(d.at) : d.error }, CH[ch] + (d.ok ? ' ✓' : ' ✕'), d.ok ? null : h('button', { type: 'button', 'aria-label': 'Отправить в ' + CH[ch] + ' ещё раз', onclick: () => guard(async () => { const r = await A.resend(l.id, ch); Object.assign(l, r.lead || {}); renderBody(); toast('Отправлено повторно'); }) }, '↻')); }) : h('span', { class: 'adm-meta' }, 'Каналы уведомлений не включены')));
+      h('div', { class: 'adm-acts' }, act('accepted', 'Принять', 'primary'), act('done', 'Выполнена'), act('canceled', 'Отменить', 'ghost'), l.status !== 'new' ? act('new', 'Вернуть в новые', 'ghost') : null, S.role === 'owner' ? del : null),
+      S.role === 'owner' ? h('textarea', { class: 'adm-note', rows: '2', placeholder: 'Заметка для себя', 'aria-label': 'Заметка к заявке ' + l.id, value: l.note || '', onchange: e => guard(async () => { await A.patchLead(l.id, { note: e.target.value }); l.note = e.target.value; toast('Заметка сохранена'); }) }) : null,
+      h('div', { class: 'adm-deliv' }, delivery.length ? delivery.map(ch => { const d = l.delivery[ch]; return h('span', { class: 'adm-dchip ' + (d.ok ? 'ok' : 'bad'), title: d.ok ? 'Доставлено ' + fmt(d.at) : d.error }, CH[ch] + (d.ok ? ' ✓' : ' ✕'), d.ok || S.role !== 'owner' ? null : h('button', { type: 'button', 'aria-label': 'Отправить в ' + CH[ch] + ' ещё раз', onclick: () => guard(async () => { const r = await A.resend(l.id, ch); Object.assign(l, r.lead || {}); renderBody(); toast('Отправлено повторно'); }) }, '↻')); }) : h('span', { class: 'adm-meta' }, 'Каналы уведомлений не включены')));
   }
   function calendar(list) {
     const y = cal.getFullYear(), m = cal.getMonth(), days = new Date(y, m + 1, 0).getDate(), pad = (new Date(y, m, 1).getDay() + 6) % 7;
@@ -188,9 +188,9 @@
     };
     draw(); return box;
   }
-  function contentView() {
+  function contentView(schema = SCHEMA) {
     const wrap = h('div', { class: 'adm-sections' });
-    SCHEMA.forEach(([title, fields], i) => {
+    schema.forEach(([title, fields], i) => {
       const d = h('details', { class: 'adm-sec', open: i === 0 }, h('summary', null, title));
       fields.forEach(([p, l, t, sub]) => { const [o, k] = ref(draft, p); if (t === 'list') { if (!Array.isArray(o[k])) o[k] = []; d.append(listEditor(o[k], l, sub)); } else d.append(field(o, k, l, t)); });
       wrap.append(d);
@@ -242,6 +242,21 @@
 
   /* ---------- настройки ---------- */
   function settingsView() {
+    const section = (title, fields) => contentView([[title, fields]]).firstElementChild;
+    const all = SCHEMA.flatMap(x => x[1]);
+    const take = (...prefixes) => all.filter(f => prefixes.some(p => f[0].startsWith(p)));
+    const panels = [
+      section('Контакты и адрес', take('brand.', 'booking.', 'contacts.')),
+      section('Первая заставка (Hero)', take('hero.', 'stand.')),
+      section('Блок „Почему мы“', take('why', 'satisfaction.')),
+      section('Бренды', take('brands.')),
+      section('Репутация/Награды', take('rating.')),
+      section('Оформление (тема)', take('theme.', 'footer.')),
+      section('SEO', take('seo.'))
+    ];
+    panels.forEach(p => p.open = false);
+    const target = h('select', { id: 'pw-role' }, h('option', { value: 'owner' }, 'Владелец'), h('option', { value: 'staff' }, 'Персонал'));
+
     const cur = h('input', { id: 'pw0', type: 'password', autocomplete: 'current-password' }), n1 = h('input', { id: 'pw1', type: 'password', autocomplete: 'new-password' }), n2 = h('input', { id: 'pw2', type: 'password', autocomplete: 'new-password' });
     const msg = h('p', { class: 'adm-meta', role: 'status' });
     const form = h('form', { class: 'adm-card', onsubmit: async e => {
@@ -249,10 +264,10 @@
       if (n1.value.length < 8) { msg.textContent = 'Новый пароль короче 8 символов'; return; }
       if (n1.value !== n2.value) { msg.textContent = 'Пароли не совпадают'; return; }
       if (n1.value === 'admin810') { msg.textContent = 'Придумайте другой пароль'; return; }
-      try { await A.changePassword(cur.value, n1.value); S.mustChange = false; cur.value = n1.value = n2.value = ''; msg.className = 'adm-meta okc'; msg.textContent = 'Пароль изменён. Другие устройства выйдут из админки.'; renderTabs(); toast('Пароль изменён'); } catch (x) { msg.textContent = x.message; }
-    } }, h('h3', null, 'Смена пароля'),
+      try { await A.changePassword(cur.value, n1.value, target.value); if (target.value === 'owner') S.mustChange = false; cur.value = n1.value = n2.value = ''; msg.className = 'adm-meta okc'; msg.textContent = 'Пароль изменён. Другие устройства выйдут из админки.'; renderTabs(); toast('Пароль изменён'); } catch (x) { msg.textContent = x.message; }
+    } }, h('h3', null, 'Смена пароля'), h('div', { class: 'adm-f' }, h('label', { for: 'pw-role' }, 'Чей пароль изменить'), target),
     S.mustChange ? h('p', { class: 'adm-banner warn' }, 'Сейчас стоит пароль по умолчанию. Задайте свой, иначе остальные разделы закрыты.') : null,
-    h('div', { class: 'adm-f' }, h('label', { for: 'pw0' }, 'Текущий пароль'), cur), h('div', { class: 'adm-f' }, h('label', { for: 'pw1' }, 'Новый пароль, от 8 символов'), n1), h('div', { class: 'adm-f' }, h('label', { for: 'pw2' }, 'Повторите новый пароль'), n2),
+    h('div', { class: 'adm-f' }, h('label', { for: 'pw0' }, 'Текущий пароль владельца'), cur), h('div', { class: 'adm-f' }, h('label', { for: 'pw1' }, 'Новый пароль, от 8 символов'), n1), h('div', { class: 'adm-f' }, h('label', { for: 'pw2' }, 'Повторите новый пароль'), n2),
     h('div', { class: 'adm-acts' }, h('button', { class: 'adm-btn primary', type: 'submit' }, 'Сменить пароль'), msg));
 
     const area = h('textarea', { rows: '5', placeholder: 'Вставьте сюда JSON резервной копии или выберите файл', 'aria-label': 'Резервная копия' });
@@ -264,19 +279,24 @@
       file, area,
       h('div', { class: 'adm-acts' }, h('button', { type: 'button', class: 'adm-btn sm ghost', onclick: () => guard(async () => { let j; try { j = JSON.parse(area.value); } catch (e) { toast('Это не похоже на JSON', true); return; } await A.importAll(j); await start(); toast('Данные восстановлены'); }) }, 'Восстановить из копии')));
     const info = h('div', { class: 'adm-card' }, h('h3', null, 'Режим'), h('p', { class: 'adm-meta' }, A.mode === 'server' ? 'Рабочий режим: данные хранятся на сервере, уведомления отправляются.' : 'Демо-режим: данные хранятся только в этом браузере, уведомления не отправляются. Для рабочего режима запустите сайт через server.js.'));
-    return h('div', { class: 'adm-settings' }, form, data, info);
+    const extra = (title, child, open) => h('details', { class: 'adm-sec', open }, h('summary', null, title), h('div', { class: 'adm-sec-content' }, child));
+    const wrap = h('div', { class: 'adm-settings' }, panels, extra('Пароли', form, S.mustChange), extra('Уведомления', notifyView()), extra('Резервная копия', data), info);
+    updateBar(); return wrap;
   }
 
   /* ---------- панель сохранения ---------- */
   function updateBar() {
     if (!bar) return;
-    const isC = tab === 'content', isN = tab === 'notify';
-    bar.hidden = !(isC || isN); if (bar.hidden) return;
-    const dirty = isC ? dirtyC : dirtyN;
-    bar.replaceChildren(...[h('span', { class: 'adm-meta' }, dirty ? 'Есть несохранённые изменения' : 'Всё сохранено'),
-      h('span', { class: 'sp' }),
-      isC ? h('button', { type: 'button', class: 'adm-btn sm ghost', onclick: resetDefaults }, 'Исходный текст') : null,
-      h('button', { type: 'button', class: 'adm-btn primary sm', disabled: !dirty, onclick: isC ? saveContent : saveNotify }, 'Сохранить')].filter(Boolean));
+    const isC = S.role === 'owner' && ['services', 'reviews', 'settings'].includes(tab);
+    bar.hidden = !isC; if (bar.hidden) return;
+    const dirty = dirtyC || dirtyN;
+    bar.replaceChildren(h('span', { class: 'adm-meta' }, dirty ? 'Есть несохранённые изменения' : 'Всё сохранено'), h('span', { class: 'sp' }),
+      h('button', { type: 'button', class: 'adm-btn sm ghost', onclick: resetDefaults }, 'Исходный текст'),
+      h('button', { type: 'button', class: 'adm-btn primary sm', disabled: !dirty, onclick: () => guard(async () => {
+        if (dirtyC) { await A.saveContent(draft); S.content = clone(draft); dirtyC = false; if (window.Site) Site.setContent(S.content); }
+        if (dirtyN) { const r = await A.saveNotify(nDraft); S.notify = clone(r.notify || nDraft); nDraft = clone(S.notify); dirtyN = false; }
+        updateBar(); toast('Сохранено');
+      }) }, 'Сохранить'));
   }
   async function resetDefaults() {
     if (!bar.dataset.arm) { bar.dataset.arm = '1'; toast('Нажмите ещё раз, чтобы вернуть исходные тексты (до сохранения ничего не изменится)'); setTimeout(() => delete bar.dataset.arm, 4000); return; }
