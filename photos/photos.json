@@ -1,11 +1,11 @@
 [
-  { "file": "photos/team-02.jpg", "caption": "Мастера автосервиса" },
+  { "file": "photos/team-02.jpg", "caption": "" },
   { "file": "photos/workshop-lift.jpg", "caption": "Цех с подъёмниками" },
   { "file": "photos/parts-shop.jpg", "caption": "Магазин масел и запчастей" },
   { "file": "photos/aggregates.jpg", "caption": "Ремонт коробок передач" },
   { "file": "photos/engine.jpg", "caption": "Детали двигателя" },
   { "file": "photos/tire-service.jpg", "caption": "Шиномонтаж" },
-  { "file": "photos/master-work.jpg", "caption": "Ремонт тормозной системы" },
+  { "file": "photos/master-work.jpg", "caption": "Мастер за работой" },
   { "file": "photos/workshop-zone.jpg", "caption": "Ремонт коммерческого транспорта" },
   { "file": "photos/workshop-hall.jpg", "caption": "Цех агрегатного ремонта" },
   { "file": "photos/diagnostics.jpg", "caption": "Компьютерная диагностика" }

@@ -160,7 +160,7 @@
       const photos = await response.json();
       photos.sort((a,b) => Number(b.file.includes('team-01')) - Number(a.file.includes('team-01')));
       if (!grid.isConnected) return;
-      grid.innerHTML = photos.map((p,i) => `<button type="button" class="photo-tile" data-photo="${i}" aria-label="Открыть: ${E(p.caption)}"><img src="photos/${E(p.file.replace(/^photos\//,''))}" alt="${E(p.caption)}" loading="lazy"><span>${E(p.caption)}</span></button>`).join('');
+      grid.innerHTML = photos.map((p,i) => `<button type="button" class="photo-tile" data-photo="${i}" aria-label="Открыть: ${E(p.caption || 'Фотография сервиса')}"><img src="photos/${E(p.file.replace(/^photos\//,''))}" alt="${E(p.caption || 'Фотография сервиса')}" loading="lazy">${p.caption ? `<span>${E(p.caption)}</span>` : ''}</button>`).join('');
       status.hidden = true;
       const dialog = document.createElement('dialog'); dialog.className = 'photo-lightbox';
       dialog.setAttribute('aria-label','Просмотр фотографий сервиса');
