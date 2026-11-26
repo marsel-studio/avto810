@@ -78,6 +78,50 @@
     const alloy=new THREE.MeshStandardMaterial({color:0xcbd0d7,roughness:0.23,metalness:1});
     const inner=new THREE.MeshStandardMaterial({color:0x353b43,roughness:0.38,metalness:0.85,side:THREE.DoubleSide});
     const add=(geo,mat,z=0)=>{const m=new THREE.Mesh(geo,mat);m.position.z=z;m.castShadow=true;m.receiveShadow=true;g.add(m);return m;};
+    if (!simple) {
+      // 195/60 R15: rim / outer radius = 0.62, width / diameter = 0.317.
+      // A flat tread and rounded shoulders give the tyre a passenger-car section.
+      const profile = [
+        [0.91,-0.38],[0.99,-0.43],[1.17,-0.465],[1.36,-0.45],
+        [1.43,-0.38],[1.46,-0.29],[1.46,0.29],[1.43,0.38],
+        [1.36,0.45],[1.17,0.465],[0.99,0.43],[0.91,0.38],
+        [0.91,-0.38]
+      ].map(([r,z]) => new THREE.Vector2(r,z));
+      const tire=add(new THREE.LatheGeometry(profile,112),rubber);
+      tire.rotation.x=Math.PI/2;
+      const tread=new THREE.InstancedMesh(new THREE.BoxGeometry(0.026,0.014,0.15),rubber,384);
+      const dummy=new THREE.Object3D();
+      for(let i=0;i<96;i++) for(let row=0;row<4;row++) {
+        const a=i/96*Math.PI*2;
+        dummy.position.set(Math.cos(a)*1.461,Math.sin(a)*1.461,(row-1.5)*0.16);
+        dummy.rotation.set(0,0,a-Math.PI/2+(row%2?0.16:-0.16));
+        dummy.updateMatrix();tread.setMatrixAt(i*4+row,dummy.matrix);
+      }
+      g.add(tread);
+      const barrel=add(new THREE.CylinderGeometry(0.91,0.91,0.76,80,1,true),inner);
+      barrel.rotation.x=Math.PI/2;
+      [-0.38,0.40].forEach(z=>{
+        add(new THREE.TorusGeometry(0.91,0.027,12,96),alloy,z);
+        const lip=add(new THREE.RingGeometry(0.865,0.935,96),alloy,z);
+        if(z<0) lip.rotation.y=Math.PI;
+      });
+      for(let i=0;i<5;i++) {
+        const shape=new THREE.Shape();
+        shape.moveTo(0.21,-0.115);shape.lineTo(0.53,-0.16);
+        shape.lineTo(0.90,-0.19);shape.lineTo(0.92,0.19);
+        shape.lineTo(0.53,0.16);shape.lineTo(0.21,0.115);shape.closePath();
+        const spoke=slab(shape,0.07,0.315,alloy,0.018);
+        spoke.rotation.z=i/5*Math.PI*2;spoke.castShadow=true;spoke.receiveShadow=true;g.add(spoke);
+      }
+      const hub=add(new THREE.CylinderGeometry(0.25,0.27,0.15,48),alloy,0.36);
+      hub.rotation.x=Math.PI/2;add(new THREE.CircleGeometry(0.13,32),inner,0.442);
+      for(let i=0;i<5;i++) {
+        const a=i/5*Math.PI*2;
+        const bolt=add(new THREE.CylinderGeometry(0.032,0.032,0.065,6),alloy,0.458);
+        bolt.rotation.x=Math.PI/2;bolt.position.x=Math.cos(a)*0.193;bolt.position.y=Math.sin(a)*0.193;
+      }
+      return g;
+    }
     const tire=add(new THREE.TorusGeometry(1.24,0.22,32,simple?64:112),rubber);tire.scale.z=1.35;
     [-0.15,0,0.15].forEach(z=>add(new THREE.TorusGeometry(1.447-Math.abs(z)*0.12,0.009,6,96),inner,z));
     if(!simple){const tread=new THREE.InstancedMesh(new THREE.BoxGeometry(0.025,0.012,0.12),rubber,192);const dummy=new THREE.Object3D();for(let i=0;i<96;i++)for(let row=0;row<2;row++){const a=i/96*Math.PI*2;dummy.position.set(Math.cos(a)*1.45,Math.sin(a)*1.45,(row?1:-1)*0.105);dummy.rotation.set(0,0,a-Math.PI/2+(row?0.18:-0.18));dummy.updateMatrix();tread.setMatrixAt(i*2+row,dummy.matrix);}g.add(tread);}
@@ -160,8 +204,14 @@
       nip.position.set(Math.cos(a) * 1.2, Math.sin(a) * 1.2, 0.0); nip.rotation.z = a - Math.PI / 2 + Math.PI; cal.add(nip);
     });
 
-    const anchorCal = new THREE.Object3D(); anchorCal.position.set(Math.cos(0.62 + 0.3) * 1.1, Math.sin(0.62 + 0.3) * 1.1, 0.33); root.add(anchorCal);
-    const anchorDisc = new THREE.Object3D(); anchorDisc.position.set(Math.cos(3.55) * 0.9, Math.sin(3.55) * 0.9, D / 2 + 0.02); root.add(anchorDisc);
+    // Fit the existing brake assembly inside the smaller 15-inch rim.
+    spin.children.slice(1).forEach(part => {
+      part.scale.multiplyScalar(0.75);part.position.multiplyScalar(0.75);
+    });
+    cal.scale.setScalar(0.75);
+
+    const anchorCal = new THREE.Object3D(); anchorCal.position.set(Math.cos(0.62 + 0.3) * 0.825, Math.sin(0.62 + 0.3) * 0.825, 0.2475); root.add(anchorCal);
+    const anchorDisc = new THREE.Object3D(); anchorDisc.position.set(Math.cos(3.55) * 0.675, Math.sin(3.55) * 0.675, (D / 2 + 0.02) * 0.75); root.add(anchorDisc);
     const tags = [[anchorCal, stage.querySelector('[data-tag="caliper"]')], [anchorDisc, stage.querySelector('[data-tag="disc"]')]];
 
     let ux = 0, uy = 0, px = 0, py = 0, cx = 0, cy = 0, vx = 0, drag = null, spinSpeed = opts.spin == null ? 0.25 : opts.spin, idle = 0;

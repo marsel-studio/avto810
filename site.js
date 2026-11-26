@@ -97,11 +97,6 @@
 <section id="why" class="sec wrap">
   <div class="sec-head"><p class="eyebrow">Подход к работе</p><h2>Ваш автомобиль.<br>Наша ответственность.</h2><p>Понятная стоимость, согласованные сроки и внимание к деталям — от первого звонка до выдачи автомобиля.</p></div><div class="why">
     <ul class="why-list">${C.why.map(w => `<li><h3>${E(w.title)}</h3><p>${E(w.text)}</p></li>`).join('')}</ul>
-    <div class="bars">
-      <h3>${E(C.satisfaction.title)}</h3>
-      <p class="src">${E(C.satisfaction.source)}</p>
-      ${C.satisfaction.items.map(i => `<div class="bar"><span>${E(i.label)}<small>${E(i.mentions)} упоминаний</small></span><span class="track"><span class="fill" style="width:${Math.max(0, Math.min(100, Number(i.value) || 0))}%"></span></span><b>${E(i.value)}%</b></div>`).join('')}
-    </div>
   </div>
 </section>
 
