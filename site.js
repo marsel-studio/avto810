@@ -130,7 +130,7 @@
       <div class="submit"><button class="btn primary" type="submit">Отправить заявку</button><span class="msg" id="formMsg" role="status"></span></div>
     </form>
     <dl class="contacts">
-      <div><dt>Телефон</dt><dd class="big"><a href="${telHref(k.phone)}">${E(k.phone)}</a></dd></div>
+      <div><dt>Телефон</dt><dd class="big"><a href="${telHref(k.phone)}">${E(k.phone)}</a>${k.phone2 ? `<br><a href="${telHref(k.phone2)}">${E(k.phone2)}</a>` : ''}</dd></div>
       <div><dt>Адрес</dt><dd>${E(k.address)}<div class="coords">${E(k.coords)}</div><div style="margin-top:10px"><a class="more" style="margin:0" href="${E(safeUrl(k.mapUrl))}" target="_blank" rel="noopener">Открыть на Яндекс Картах</a></div></dd></div>
       <div><dt>Часы работы</dt><dd>${E(k.hours)}</dd></div>
       <div><dt>ВКонтакте</dt><dd><a href="${E(safeUrl(k.vk))}" target="_blank" rel="noopener">${E(String(k.vk).replace(/^https?:\/\//, ''))}</a></dd></div>

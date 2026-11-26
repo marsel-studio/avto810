@@ -157,7 +157,7 @@
     ['Марки автомобилей', [T('brands.title', 'Заголовок'), ['brands.groups', 'Группы марок', 'list', [['group', 'Группа'], ['list', 'Марки через запятую', 'area']]]]],
     ['Отзывы', [T('reviews.title', 'Заголовок'), ['reviews.items', 'Отзывы', 'list', [['author', 'Автор'], ['date', 'Дата'], ['text', 'Текст', 'area']]]]],
     ['Запись и контакты', [T('booking.eyebrow', 'Надстрочник'), T('booking.title', 'Заголовок формы'), T('booking.text', 'Подпись', 'area'), T('booking.consent', 'Текст согласия', 'area'), T('booking.success', 'Сообщение после отправки', 'area'),
-      T('contacts.phone', 'Телефон'), T('contacts.address', 'Адрес'), T('contacts.coords', 'Координаты'), T('contacts.hours', 'Часы работы'), T('contacts.vk', 'Ссылка ВКонтакте'), T('contacts.mapUrl', 'Ссылка на Яндекс Карты'), T('contacts.amenities', 'Удобства, по одному в строке', 'lines')]],
+      T('contacts.phone', 'Телефон'), T('contacts.phone2', 'Телефон 2 (можно оставить пустым)'), T('contacts.address', 'Адрес'), T('contacts.coords', 'Координаты'), T('contacts.hours', 'Часы работы'), T('contacts.vk', 'Ссылка ВКонтакте'), T('contacts.mapUrl', 'Ссылка на Яндекс Карты'), T('contacts.amenities', 'Удобства, по одному в строке', 'lines')]],
     ['Оформление и 3D', [T('theme.accent', 'Акцентный цвет сайта', 'color'), T('theme.caliper', 'Цвет суппорта на 3D-модели', 'color'), T('theme.spin', 'Скорость вращения диска', 'range'), T('theme.enable3d', 'Показывать 3D-сцены', 'bool'), T('footer.legal', 'Текст в подвале', 'area')]]
   ];
   function ref(obj, path) { const k = path.split('.'); let o = obj; for (let i = 0; i < k.length - 1; i++) { if (o[k[i]] == null) o[k[i]] = {}; o = o[k[i]]; } return [o, k[k.length - 1]]; }
