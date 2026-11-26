@@ -23,7 +23,9 @@
     try { mem = JSON.parse(localStorage.getItem(KEY)); } catch (e) { mem = null; }
     if (!mem) mem = { content: JSON.parse(JSON.stringify(A.defaults)), notify: emptyNotify(), leads: [], seq: 0, staffPass: { value: '810zayavki2026', mustChange: true }, ownerPass: { value: '810owner2026', mustChange: true } };
     if (!mem.staffPass || !mem.ownerPass || mem.pw) {
-      mem.staffPass = mem.staffPass || { value: mem.pw || '810zayavki2026', mustChange: mem.pw ? false : true };
+      const oldPw = mem.pw || (mem.staffPass && mem.staffPass.value);
+      const migrated = oldPw && oldPw !== 'admin810' ? oldPw : '810zayavki2026';
+      mem.staffPass = { value: migrated, mustChange: oldPw && oldPw !== 'admin810' ? false : true };
       mem.ownerPass = mem.ownerPass || { value: '810owner2026', mustChange: true };
       delete mem.pw; persist();
     }
