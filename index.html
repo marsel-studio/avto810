@@ -7,6 +7,8 @@
 <title>Автосервис 810</title>
 <meta name="description" content="Автосервис 810 в Урае: диагностика, ремонт, сход-развал на 3D-стенде.">
 <meta name="theme-color" content="#0a0b0d">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/apple-180.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@300;400;500&family=Manrope:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
@@ -23,5 +25,6 @@
 <script src="scene.js"></script>
 <script src="site.js"></script>
 <script src="admin.js"></script>
+<script>if('serviceWorker' in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){})})}</script>
 </body>
 </html>
